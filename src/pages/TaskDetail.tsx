@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTask } from "../contexts/TaskContext";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { Task } from "../types";
+import { Task, Status, Priority, User } from "../types";
 import {
   Select,
   SelectContent,
@@ -65,17 +64,17 @@ const TaskDetail = () => {
     );
   }
 
-  const creator = allUsers.find(u => u.id === task.createdBy);
-  const assignee = task.assignedTo ? allUsers.find(u => u.id === task.assignedTo) : undefined;
+  const creator = allUsers.find(u => (u as User)._id === task.createdBy);
+  const assignee = task.assignedTo ? allUsers.find(u => (u as User)._id === task.assignedTo) : undefined;
   
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
 
-  const handleStatusChange = async (status: string) => {
+  const handleStatusChange = async (status: Status) => {
     if (task) {
       setIsLoading(true);
       try {
-        await updateTask({ ...task, status: status as any });
-        setTask({ ...task, status: status as any });
+        await updateTask({ ...task, status });
+        setTask({ ...task, status });
         toast.success("Task status updated");
       } catch (error) {
         toast.error("Failed to update task status");
@@ -85,12 +84,12 @@ const TaskDetail = () => {
     }
   };
 
-  const handlePriorityChange = async (priority: string) => {
+  const handlePriorityChange = async (priority: Priority) => {
     if (task) {
       setIsLoading(true);
       try {
-        await updateTask({ ...task, priority: priority as any });
-        setTask({ ...task, priority: priority as any });
+        await updateTask({ ...task, priority });
+        setTask({ ...task, priority });
         toast.success("Task priority updated");
       } catch (error) {
         toast.error("Failed to update task priority");
@@ -104,7 +103,7 @@ const TaskDetail = () => {
     if (task) {
       setIsLoading(true);
       try {
-        await assignTask(task.id, userId);
+        await assignTask((task as Task)._id, userId);
         setTask({ ...task, assignedTo: userId });
         toast.success("Task assigned successfully");
       } catch (error) {
@@ -118,7 +117,7 @@ const TaskDetail = () => {
   const handleDeleteTask = async () => {
     setIsDeleting(true);
     try {
-      await deleteTask(task.id);
+      await deleteTask((task as Task)._id);
       toast.success("Task deleted successfully");
       navigate("/tasks");
     } catch (error) {
@@ -150,7 +149,7 @@ const TaskDetail = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate(`/tasks/edit/${task.id}`)}
+              onClick={() => navigate(`/tasks/edit/${(task as Task)._id}`)}
             >
               <Edit className="h-4 w-4" />
             </Button>
@@ -325,15 +324,15 @@ const TaskDetail = () => {
                     <SelectContent>
                       <SelectGroup>
                         {allUsers.map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
+                          <SelectItem key={(user as User)._id} value={(user as User)._id}>
                             <div className="flex items-center">
                               <Avatar className="h-5 w-5 mr-2">
-                                <AvatarImage src={user.avatarUrl} />
+                                <AvatarImage src={(user as User).avatarUrl} />
                                 <AvatarFallback className="text-xs">
-                                  {user.name.substring(0, 2).toUpperCase()}
+                                  {(user as User).name.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              {user.name}
+                              {(user as User).name}
                             </div>
                           </SelectItem>
                         ))}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTask } from "../contexts/TaskContext";
@@ -261,7 +260,7 @@ const TaskForm = () => {
                       <SelectGroup>
                         <SelectLabel>Team Members</SelectLabel>
                         {allUsers.map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
+                          <SelectItem key={user._id} value={user._id}>
                             {user.name}
                           </SelectItem>
                         ))}

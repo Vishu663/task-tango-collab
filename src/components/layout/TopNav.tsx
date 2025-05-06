@@ -1,4 +1,3 @@
-
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Notification } from "../../types";
 
 const TopNav = () => {
   const { isAuthenticated } = useAuth();
@@ -79,30 +79,37 @@ const TopNav = () => {
                   </div>
                 ) : (
                   notifications.map((notification) => (
-                    <DropdownMenuItem
-                      key={notification.id}
-                      className={`cursor-pointer p-3 ${
-                        !notification.read ? "bg-accent/40" : ""
+                    <div
+                      key={notification._id}
+                      className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
+                        !notification.read ? 'bg-blue-50' : ''
                       }`}
                       onClick={() => {
-                        markNotificationAsRead(notification.id);
-                        navigate(`/tasks/${notification.taskId}`);
+                        if (notification.populatedTaskId) {
+                          navigate(`/tasks/${notification.populatedTaskId._id}`);
+                          markNotificationAsRead(notification._id);
+                        }
                       }}
                     >
-                      <div className="w-full">
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="text-sm font-medium">{notification.message}</div>
-                          {!notification.read && (
-                            <Badge variant="default" className="text-[10px] py-0 px-1.5">
-                              New
-                            </Badge>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm text-gray-900">{notification.message}</p>
+                          {notification.populatedTaskId && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Task: {notification.populatedTaskId.title}
+                            </p>
                           )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(notification.timestamp).toLocaleString()}
+                          </p>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {format(new Date(notification.timestamp), "MMM d, h:mm a")}
-                        </div>
+                        {!notification.read && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            New
+                          </span>
+                        )}
                       </div>
-                    </DropdownMenuItem>
+                    </div>
                   ))
                 )}
               </div>

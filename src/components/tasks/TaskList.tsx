@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCard from "./TaskCard";
@@ -21,9 +20,9 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, hasActiveFilters }) => {
     <div className="space-y-4">
       {tasks.map((task) => (
         <TaskCard
-          key={task.id}
+          key={task._id}
           task={task}
-          onClick={() => navigate(`/tasks/${task.id}`)}
+          onClick={() => navigate(`/tasks/${task._id}`)}
         />
       ))}
     </div>

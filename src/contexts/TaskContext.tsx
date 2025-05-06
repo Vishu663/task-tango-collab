@@ -1,15 +1,15 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Task, Priority, Status, Notification } from "../types";
-import { mockTasks, mockNotifications, generateId } from "../lib/mockData";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import axios from "axios";
+
+const API_URL = 'http://localhost:5000/api';
 
 interface TaskContextType {
   tasks: Task[];
   notifications: Notification[];
-  addTask: (task: Omit<Task, "id" | "createdAt" | "createdBy">) => Promise<void>;
+  addTask: (task: Omit<Task, "_id" | "createdAt" | "createdBy">) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   getTask: (taskId: string) => Task | undefined;
@@ -35,138 +35,252 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Load tasks on mount and when user changes
+  // Load tasks and notifications on mount and when user changes
   useEffect(() => {
-    if (user) {
-      // In a real app, we would fetch from API
-      setTasks(mockTasks);
-      setNotifications(mockNotifications);
-    } else {
-      setTasks([]);
-      setNotifications([]);
-    }
-  }, [user]);
+    const fetchData = async () => {
+      if (user) {
+        try {
+          const token = localStorage.getItem("taskTangoToken");
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
 
-  const addTask = async (taskData: Omit<Task, "id" | "createdAt" | "createdBy">) => {
-    if (!user) return Promise.reject("Not authenticated");
+          // Fetch tasks
+          const tasksResponse = await fetch(`${API_URL}/tasks`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (!tasksResponse.ok) {
+            throw new Error('Failed to fetch tasks');
+          }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+          const tasksData = await tasksResponse.json();
+          console.log('Fetched tasks:', tasksData.length);
+          setTasks(tasksData);
 
-    const newTask: Task = {
-      id: generateId("t"),
-      ...taskData,
-      createdAt: new Date().toISOString(),
-      createdBy: user.id,
+          // Fetch notifications
+          const notificationsResponse = await fetch(`${API_URL}/notifications`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!notificationsResponse.ok) {
+            throw new Error('Failed to fetch notifications');
+          }
+
+          const notificationsData = await notificationsResponse.json();
+          console.log('Fetched notifications:', notificationsData.length);
+          console.log('Notification data:', notificationsData);
+          setNotifications(notificationsData);
+        } catch (error) {
+          console.error('Failed to fetch data:', error);
+          toast.error('Failed to fetch data');
+        }
+      } else {
+        setTasks([]);
+        setNotifications([]);
+      }
     };
 
-    // Add to state (in a real app, this would be a response from the server)
-    setTasks((prevTasks) => [...prevTasks, newTask]);
+    fetchData();
+  }, [user]);
 
-    // If assigned to someone, create notification
-    if (taskData.assignedTo && taskData.assignedTo !== user.id) {
-      const newNotification: Notification = {
-        id: generateId("n"),
-        type: "task_assigned",
-        taskId: newTask.id,
-        message: `${user.name} assigned you a new task: ${newTask.title}`,
-        timestamp: new Date().toISOString(),
-        read: false,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
+  const addTask = async (taskData: Omit<Task, "_id" | "createdAt" | "createdBy">) => {
+    if (!user) return Promise.reject("Not authenticated");
+
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${API_URL}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(taskData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create task');
+      }
+
+      const newTask = await response.json();
+      console.log('Created new task:', newTask);
+      setTasks(prevTasks => [...prevTasks, newTask]);
+
+      // Fetch updated notifications after task creation
+      const notificationsResponse = await fetch(`${API_URL}/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (notificationsResponse.ok) {
+        const notificationsData = await notificationsResponse.json();
+        console.log('Updated notifications after task creation:', notificationsData.length);
+        setNotifications(notificationsData);
+      }
+
+      toast.success("Task created successfully");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create task");
+      throw error;
     }
-
-    toast.success("Task created successfully");
-    return Promise.resolve();
   };
 
   const updateTask = async (task: Task) => {
     if (!user) return Promise.reject("Not authenticated");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-    // Update in state (in a real app, this would be a response from the server)
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === task.id ? task : t))
-    );
+      const response = await fetch(`${API_URL}/tasks/${task._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(task)
+      });
 
-    toast.success("Task updated successfully");
-    return Promise.resolve();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update task');
+      }
+
+      const updatedTask = await response.json();
+      setTasks(prevTasks => prevTasks.map(t => t._id === task._id ? updatedTask : t));
+      toast.success("Task updated successfully");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update task");
+      throw error;
+    }
   };
 
   const deleteTask = async (taskId: string) => {
     if (!user) return Promise.reject("Not authenticated");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-    // Remove from state (in a real app, this would be a response from the server)
-    setTasks((prevTasks) => prevTasks.filter((t) => t.id !== taskId));
-    
-    // Also remove related notifications
-    setNotifications((prevNotifications) => 
-      prevNotifications.filter((n) => n.taskId !== taskId)
-    );
+      const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-    toast.success("Task deleted successfully");
-    return Promise.resolve();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete task');
+      }
+
+      setTasks(prevTasks => prevTasks.filter(t => t._id !== taskId));
+      toast.success("Task deleted successfully");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete task");
+      throw error;
+    }
   };
 
   const getTask = (taskId: string) => {
-    return tasks.find((task) => task.id === taskId);
+    return tasks.find(task => task._id === taskId);
   };
 
   const assignTask = async (taskId: string, userId: string) => {
     if (!user) return Promise.reject("Not authenticated");
 
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return Promise.reject("Task not found");
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log('Assigning task:', { taskId, userId });
 
-    const updatedTask = { ...task, assignedTo: userId };
+      const response = await fetch(`${API_URL}/tasks/${taskId}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ assignedTo: userId })
+      });
 
-    // Update in state
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === taskId ? updatedTask : t))
-    );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to assign task');
+      }
 
-    // Create notification for assignee
-    if (userId !== user.id) {
-      const newNotification: Notification = {
-        id: generateId("n"),
-        type: "task_assigned",
-        taskId: taskId,
-        message: `${user.name} assigned you a task: ${task.title}`,
-        timestamp: new Date().toISOString(),
-        read: false,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
+      const updatedTask = await response.json();
+      console.log('Task assigned successfully:', updatedTask);
+
+      setTasks(prevTasks => prevTasks.map(t => t._id === taskId ? updatedTask : t));
+      toast.success("Task assigned successfully");
+    } catch (error) {
+      console.error('Failed to assign task:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to assign task");
+      throw error;
     }
-
-    toast.success("Task assigned successfully");
-    return Promise.resolve();
   };
 
-  const markNotificationAsRead = (notificationId: string) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      const response = await axios.patch(`${API_URL}/notifications/${notificationId}`);
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification._id === notificationId ? response.data : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    toast.info("All notifications cleared");
+  const clearAllNotifications = async () => {
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${API_URL}/notifications`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to clear notifications');
+      }
+
+      setNotifications([]);
+      toast.success("All notifications cleared successfully");
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to clear notifications");
+    }
   };
 
   const getTasksByFilter = (filter: TaskFilter): Task[] => {
     if (!user) return [];
 
-    return tasks.filter((task) => {
+    return tasks.filter(task => {
       // Search filter
       if (
         filter.search &&
@@ -187,12 +301,12 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Assigned to me filter
-      if (filter.assignedToMe && task.assignedTo !== user.id) {
+      if (filter.assignedToMe && task.assignedTo !== user._id) {
         return false;
       }
 
       // Created by me filter
-      if (filter.createdByMe && task.createdBy !== user.id) {
+      if (filter.createdByMe && task.createdBy !== user._id) {
         return false;
       }
 

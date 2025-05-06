@@ -1,16 +1,16 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, AuthState } from "../types";
-import { mockUsers, currentUser } from "../lib/mockData";
 import { toast } from "sonner";
+
+const API_URL = 'http://localhost:5000/api';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  getUser: (userId: string) => User | undefined;
   getAllUsers: () => User[];
+  getUser: (userId: string) => User | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,12 +22,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticated: false,
     isLoading: true,
   });
+  const [users, setUsers] = useState<User[]>([]);
 
   // Check for saved auth on mount
   useEffect(() => {
     const checkAuth = async () => {
       const savedUser = localStorage.getItem("taskTangoUser");
-      if (savedUser) {
+      const savedToken = localStorage.getItem("taskTangoToken");
+      
+      if (savedUser && savedToken) {
         try {
           const user = JSON.parse(savedUser);
           setAuthState({
@@ -35,8 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isAuthenticated: true,
             isLoading: false,
           });
+          // Fetch users after successful authentication
+          fetchUsers();
         } catch (e) {
           localStorage.removeItem("taskTangoUser");
+          localStorage.removeItem("taskTangoToken");
           setAuthState({ user: null, isAuthenticated: false, isLoading: false });
         }
       } else {
@@ -47,78 +53,120 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("taskTangoToken");
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
+
+  const getAllUsers = () => {
+    return users;
+  };
+
+  const getUser = (userId: string) => {
+    return users.find(user => user._id === userId);
+  };
+
   const login = async (email: string, password: string) => {
-    // Simulate login delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    // This is just a mock - in a real app we would validate credentials server-side
-    const user = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    
-    if (user && password === "password") { // In a real app, we would verify the hashed password
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+      
       setAuthState({
-        user,
+        user: data.user,
         isAuthenticated: true,
         isLoading: false,
       });
-      localStorage.setItem("taskTangoUser", JSON.stringify(user));
+      
+      localStorage.setItem("taskTangoUser", JSON.stringify(data.user));
+      localStorage.setItem("taskTangoToken", data.token);
+      
+      // Fetch users after successful login
+      await fetchUsers();
+      
       toast.success("Login successful!");
       navigate("/dashboard");
-    } else {
+    } catch (error) {
       toast.error("Invalid credentials");
-      throw new Error("Invalid login credentials");
+      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    // Check if user already exists
-    if (mockUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      toast.error("Email already in use");
-      throw new Error("Email already in use");
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Registration failed');
+      }
+
+      const data = await response.json();
+      
+      setAuthState({
+        user: data.user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      
+      localStorage.setItem("taskTangoUser", JSON.stringify(data.user));
+      localStorage.setItem("taskTangoToken", data.token);
+      
+      // Fetch users after successful registration
+      await fetchUsers();
+      
+      toast.success("Registration successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registration failed");
+      throw error;
     }
-    
-    // In a real app, we would create the user in the database
-    const newUser: User = {
-      id: `u${mockUsers.length + 1}`,
-      name,
-      email,
-      avatarUrl: `https://ui-avatars.com/api/?name=${name.replace(/ /g, '+')}&background=6D28D9&color=fff`
-    };
-    
-    // Add to mock users (this would be a DB operation in a real app)
-    mockUsers.push(newUser);
-    
-    // Log the user in
-    setAuthState({
-      user: newUser,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-    localStorage.setItem("taskTangoUser", JSON.stringify(newUser));
-    
-    toast.success("Registration successful!");
-    navigate("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("taskTangoUser");
+    localStorage.removeItem("taskTangoToken");
     setAuthState({
       user: null,
       isAuthenticated: false,
       isLoading: false,
     });
+    setUsers([]);
     toast.info("Logged out successfully");
     navigate("/login");
-  };
-
-  const getUser = (userId: string) => {
-    return mockUsers.find((user) => user.id === userId);
-  };
-
-  const getAllUsers = () => {
-    return mockUsers;
   };
 
   return (
@@ -128,8 +176,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
-        getUser,
         getAllUsers,
+        getUser,
       }}
     >
       {children}
