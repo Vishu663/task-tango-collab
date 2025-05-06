@@ -125,8 +125,8 @@ const Tasks = () => {
                       {option.label}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </SelectGroup>
+                </SelectGroup>
+              </SelectContent>
             </Select>
 
             {/* Priority Filter */}
@@ -145,8 +145,8 @@ const Tasks = () => {
                       {option.label}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </SelectGroup>
+                </SelectGroup>
+              </SelectContent>
             </Select>
 
             {/* Quick Filters */}
