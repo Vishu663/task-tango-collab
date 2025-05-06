@@ -1,12 +1,11 @@
 
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import AppSidebar from "./AppSidebar";
 import TopNav from "./TopNav";
 import MobileNav from "./MobileNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,7 +14,6 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children, requireAuth = true }: AppLayoutProps) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   // Show loading state
   if (isLoading) {

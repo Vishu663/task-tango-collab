@@ -17,7 +17,7 @@ const TasksHeader: React.FC = () => {
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="mr-2 md:hidden lg:flex"
+            className="mr-2"
           >
             <PanelLeftIcon className="h-5 w-5" />
             <span className="sr-only">Toggle Sidebar</span>

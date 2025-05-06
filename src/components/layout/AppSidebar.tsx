@@ -1,4 +1,3 @@
-
 import { 
   Home, 
   ListCheck, 
@@ -84,6 +83,18 @@ const AppSidebar = () => {
 
   return (
     <>
+      {/* Toggle button shown when sidebar is collapsed (for all screen sizes) */}
+      {state === "collapsed" && !isMobile && (
+        <Button 
+          variant="outline"
+          size="icon"
+          className="fixed top-4 left-4 z-50 hidden md:flex"
+          onClick={toggleSidebar}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
+      
       {/* Mobile sidebar toggle button (outside sidebar) */}
       {isMobile && state === "collapsed" && (
         <Button 
