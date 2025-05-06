@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import AppSidebar from "./AppSidebar";
 import TopNav from "./TopNav";
+import MobileNav from "./MobileNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +42,10 @@ const AppLayout = ({ children, requireAuth = true }: AppLayoutProps) => {
         <AppSidebar />
         <div className="flex flex-col w-full">
           <TopNav />
-          <main className="flex-1 p-4 md:p-6 w-full animate-fade-in">
+          <main className="flex-1 p-4 md:p-6 w-full animate-fade-in pb-16 md:pb-6">
             {children}
           </main>
+          <MobileNav />
         </div>
       </div>
     </SidebarProvider>

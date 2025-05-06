@@ -7,7 +7,8 @@ import {
   LogIn, 
   Calendar, 
   Filter,
-  LogOut 
+  LogOut,
+  Menu
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTask } from "../../contexts/TaskContext";
@@ -25,15 +26,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar
 } from "@/components/ui/sidebar";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const AppSidebar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { notifications } = useTask();
   const navigate = useNavigate();
+  const { isMobile, state, toggleSidebar } = useSidebar();
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
@@ -42,11 +46,12 @@ const AppSidebar = () => {
     return (
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center px-4">
+          <div className="flex items-center justify-between px-4">
             <div className="flex items-center gap-2 font-semibold text-lg text-white">
               <ListCheck />
               <span>TaskTango</span>
             </div>
+            <SidebarTrigger />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -78,105 +83,119 @@ const AppSidebar = () => {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center justify-between px-4">
-          <div className="flex items-center gap-2 font-semibold text-lg text-white">
-            <ListCheck />
-            <span>TaskTango</span>
-          </div>
-          <SidebarTrigger />
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/dashboard")}>
-                  <div className="flex items-center">
-                    <Home className="mr-2 h-5 w-5" />
-                    <span>Dashboard</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/tasks")}>
-                  <div className="flex items-center">
-                    <ListCheck className="mr-2 h-5 w-5" />
-                    <span>Tasks</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/calendar")}>
-                  <div className="flex items-center">
-                    <Calendar className="mr-2 h-5 w-5" />
-                    <span>Calendar</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Filters</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/tasks?assignedToMe=true")}>
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-5 w-5" />
-                    <span>Assigned to me</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/tasks?createdByMe=true")}>
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-5 w-5" />
-                    <span>Created by me</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => navigate("/tasks?overdue=true")}>
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-5 w-5" />
-                    <span>Overdue</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <div className="px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatarUrl} alt={user.name} />
-                <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="ml-2">
-                <p className="text-sm font-medium text-white">{user.name}</p>
-                <p className="text-xs text-sidebar-accent-foreground">{user.email}</p>
-              </div>
+    <>
+      {/* Mobile sidebar toggle button (outside sidebar) */}
+      {isMobile && state === "collapsed" && (
+        <Button 
+          variant="outline"
+          size="icon"
+          className="fixed top-4 left-4 z-50 md:hidden"
+          onClick={toggleSidebar}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
+      
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+              <ListCheck />
+              <span>TaskTango</span>
             </div>
-            <button 
-              onClick={logout}
-              className="p-1 rounded-full hover:bg-sidebar-accent transition-colors"
-              aria-label="Logout"
-            >
-              <LogOut className="h-5 w-5 text-sidebar-foreground" />
-            </button>
+            <SidebarTrigger />
           </div>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/dashboard")}>
+                    <div className="flex items-center">
+                      <Home className="mr-2 h-5 w-5" />
+                      <span>Dashboard</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/tasks")}>
+                    <div className="flex items-center">
+                      <ListCheck className="mr-2 h-5 w-5" />
+                      <span>Tasks</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/calendar")}>
+                    <div className="flex items-center">
+                      <Calendar className="mr-2 h-5 w-5" />
+                      <span>Calendar</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Filters</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/tasks?assignedToMe=true")}>
+                    <div className="flex items-center">
+                      <Filter className="mr-2 h-5 w-5" />
+                      <span>Assigned to me</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/tasks?createdByMe=true")}>
+                    <div className="flex items-center">
+                      <Filter className="mr-2 h-5 w-5" />
+                      <span>Created by me</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={() => navigate("/tasks?overdue=true")}>
+                    <div className="flex items-center">
+                      <Filter className="mr-2 h-5 w-5" />
+                      <span>Overdue</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="px-3 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
+                  <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="ml-2">
+                  <p className="text-sm font-medium text-white">{user.name}</p>
+                  <p className="text-xs text-sidebar-accent-foreground">{user.email}</p>
+                </div>
+              </div>
+              <button 
+                onClick={logout}
+                className="p-1 rounded-full hover:bg-sidebar-accent transition-colors"
+                aria-label="Logout"
+              >
+                <LogOut className="h-5 w-5 text-sidebar-foreground" />
+              </button>
+            </div>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+    </>
   );
 };
 
