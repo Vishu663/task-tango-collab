@@ -36,8 +36,8 @@ const TopNav = () => {
     <header className="bg-white dark:bg-slate-900 border-b border-border shadow-sm py-2 px-4 md:px-6">
       <div className="flex items-center justify-between">
         <form onSubmit={handleSearch} className="max-w-sm w-full">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className="relative pl-10">
+            <Search className="absolute left-14 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               type="text"
               placeholder="Search tasks..."
@@ -115,10 +115,6 @@ const TopNav = () => {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button onClick={() => navigate("/tasks/new")} className="hidden sm:flex">
-            New Task
-          </Button>
         </div>
       </div>
     </header>

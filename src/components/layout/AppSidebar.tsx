@@ -88,7 +88,7 @@ const AppSidebar = () => {
         <Button 
           variant="outline"
           size="icon"
-          className="fixed top-4 left-4 z-50 hidden md:flex"
+          className="fixed top-2 left-4 z-50 hidden md:flex"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -100,7 +100,7 @@ const AppSidebar = () => {
         <Button 
           variant="outline"
           size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden"
+          className="fixed top-2 left-4 z-50 md:hidden"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />

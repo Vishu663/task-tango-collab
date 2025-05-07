@@ -4,19 +4,19 @@ import { User, Task, Notification, Priority, Status } from "../types";
 // Mock Users
 export const mockUsers: User[] = [
   {
-    id: "u1",
+    _id: "u1",
     name: "John Doe",
     email: "john@example.com",
     avatarUrl: "https://ui-avatars.com/api/?name=John+Doe&background=6D28D9&color=fff"
   },
   {
-    id: "u2",
+    _id: "u2",
     name: "Jane Smith",
     email: "jane@example.com",
     avatarUrl: "https://ui-avatars.com/api/?name=Jane+Smith&background=6D28D9&color=fff"
   },
   {
-    id: "u3",
+    _id: "u3",
     name: "Alex Johnson",
     email: "alex@example.com",
     avatarUrl: "https://ui-avatars.com/api/?name=Alex+Johnson&background=6D28D9&color=fff"
@@ -29,7 +29,7 @@ export const currentUser: User = mockUsers[0];
 // Mock Tasks
 export const mockTasks: Task[] = [
   {
-    id: "t1",
+    _id: "t1",
     title: "Implement User Authentication",
     description: "Create login and registration endpoints with JWT integration",
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -40,7 +40,7 @@ export const mockTasks: Task[] = [
     assignedTo: "u2"
   },
   {
-    id: "t2",
+    _id: "t2",
     title: "Design Dashboard Layout",
     description: "Create wireframes and mockups for the main dashboard interface",
     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
@@ -50,7 +50,7 @@ export const mockTasks: Task[] = [
     createdBy: "u1"
   },
   {
-    id: "t3",
+    _id: "t3",
     title: "API Documentation",
     description: "Document all API endpoints and request/response schemas",
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -61,7 +61,7 @@ export const mockTasks: Task[] = [
     assignedTo: "u1"
   },
   {
-    id: "t4",
+    _id: "t4",
     title: "Fix Navigation Bug",
     description: "Fix the navigation menu collapses incorrectly on mobile devices",
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -72,7 +72,7 @@ export const mockTasks: Task[] = [
     assignedTo: "u1"
   },
   {
-    id: "t5",
+    _id: "t5",
     title: "Update User Settings",
     description: "Implement user profile and settings screens",
     createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
@@ -87,7 +87,7 @@ export const mockTasks: Task[] = [
 // Mock Notifications
 export const mockNotifications: Notification[] = [
   {
-    id: "n1",
+    _id: "n1",
     type: "task_assigned",
     taskId: "t1",
     message: "Jane Smith assigned you a new task: Implement User Authentication",
@@ -95,7 +95,7 @@ export const mockNotifications: Notification[] = [
     read: false
   },
   {
-    id: "n2",
+    _id: "n2",
     type: "task_deadline",
     taskId: "t2",
     message: "Task 'Design Dashboard Layout' is overdue",
@@ -103,7 +103,7 @@ export const mockNotifications: Notification[] = [
     read: true
   },
   {
-    id: "n3",
+    _id: "n3",
     type: "task_updated",
     taskId: "t3",
     message: "Alex Johnson updated task: API Documentation",

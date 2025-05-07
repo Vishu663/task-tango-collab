@@ -93,9 +93,9 @@ const Dashboard = () => {
             ) : (
               recentTasks.map((task) => (
                 <TaskCard 
-                  key={task.id} 
+                  key={task._id} 
                   task={task} 
-                  onClick={() => navigate(`/tasks/${task.id}`)} 
+                  onClick={() => navigate(`/tasks/${task._id}`)} 
                 />
               ))
             )}

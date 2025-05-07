@@ -109,9 +109,9 @@ const Calendar = () => {
                     <div className="space-y-1 overflow-y-auto max-h-20">
                       {dayTasks.map((task) => (
                         <TaskItem 
-                          key={task.id} 
+                          key={task._id} 
                           task={task} 
-                          onClick={() => navigate(`/tasks/${task.id}`)} 
+                          onClick={() => navigate(`/tasks/${task._id}`)} 
                         />
                       ))}
                     </div>

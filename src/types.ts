@@ -1,6 +1,6 @@
 
 export type User = {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   avatarUrl?: string;
@@ -10,7 +10,7 @@ export type Priority = 'low' | 'medium' | 'high';
 export type Status = 'todo' | 'in-progress' | 'review' | 'done';
 
 export type Task = {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   createdAt: string;
@@ -22,7 +22,7 @@ export type Task = {
 };
 
 export type Notification = {
-  id: string;
+  _id: string;
   type: 'task_assigned' | 'task_updated' | 'task_deadline';
   taskId: string;
   message: string;
