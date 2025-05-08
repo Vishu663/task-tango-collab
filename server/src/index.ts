@@ -404,10 +404,14 @@ app.delete('/api/notifications', async (req: AuthRequest, res: Response) => {
   }
 });
 
+app.get('/', (req: Request, res: Response) => {
+  res.send('API is running');
+});
+
 // Mount the router
 app.use('/api', router);
 
 // Apply error handling middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+console.log("server is running");
