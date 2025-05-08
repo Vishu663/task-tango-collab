@@ -415,3 +415,5 @@ app.use('/api', router);
 app.use(errorHandler);
 
 console.log("server is running");
+
+export default app;
