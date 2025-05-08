@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import axios from "axios";
 
 const API_URL =
-  "http://https://task-tango-backend-bdlcum2x4-vishu663s-projects.vercel.app/api";
+  "https://task-tango-backend-bdlcum2x4-vishu663s-projects.vercel.app/api";
 
 interface TaskContextType {
   tasks: Task[];
