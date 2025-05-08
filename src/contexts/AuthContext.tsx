@@ -9,8 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { User, AuthState } from "../types";
 import { toast } from "sonner";
 
-const API_URL =
-  "https://task-tango-backend-bdlcum2x4-vishu663s-projects.vercel.app/api";
+const API_URL = "https://task-tango-backend.vercel.app/api";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
