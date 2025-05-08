@@ -1,9 +1,16 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { User, AuthState } from "../types";
 import { toast } from "sonner";
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL =
+  "http://https://task-tango-backend-bdlcum2x4-vishu663s-projects.vercel.app/api";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -29,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
       const savedUser = localStorage.getItem("taskTangoUser");
       const savedToken = localStorage.getItem("taskTangoToken");
-      
+
       if (savedUser && savedToken) {
         try {
           const user = JSON.parse(savedUser);
@@ -43,7 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (e) {
           localStorage.removeItem("taskTangoUser");
           localStorage.removeItem("taskTangoToken");
-          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
         }
       } else {
         setAuthState({ user: null, isAuthenticated: false, isLoading: false });
@@ -60,18 +71,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const response = await fetch(`${API_URL}/users`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error("Failed to fetch users");
       }
 
       const data = await response.json();
       setUsers(data);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      console.error("Failed to fetch users:", error);
     }
   };
 
@@ -80,37 +91,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getUser = (userId: string) => {
-    return users.find(user => user._id === userId);
+    return users.find((user) => user._id === userId);
   };
 
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Invalid credentials');
+        throw new Error("Invalid credentials");
       }
 
       const data = await response.json();
-      
+
       setAuthState({
         user: data.user,
         isAuthenticated: true,
         isLoading: false,
       });
-      
+
       localStorage.setItem("taskTangoUser", JSON.stringify(data.user));
       localStorage.setItem("taskTangoToken", data.token);
-      
+
       // Fetch users after successful login
       await fetchUsers();
-      
+
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error) {
@@ -122,36 +133,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email, password }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Registration failed');
+        throw new Error(error.error || "Registration failed");
       }
 
       const data = await response.json();
-      
+
       setAuthState({
         user: data.user,
         isAuthenticated: true,
         isLoading: false,
       });
-      
+
       localStorage.setItem("taskTangoUser", JSON.stringify(data.user));
       localStorage.setItem("taskTangoToken", data.token);
-      
+
       // Fetch users after successful registration
       await fetchUsers();
-      
+
       toast.success("Registration successful!");
       navigate("/dashboard");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Registration failed");
+      toast.error(
+        error instanceof Error ? error.message : "Registration failed"
+      );
       throw error;
     }
   };

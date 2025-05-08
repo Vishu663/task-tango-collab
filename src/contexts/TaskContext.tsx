@@ -10,7 +10,8 @@ import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL =
+  "http://https://task-tango-backend-bdlcum2x4-vishu663s-projects.vercel.app/api";
 
 interface TaskContextType {
   tasks: Task[];
