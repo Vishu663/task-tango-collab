@@ -65,7 +65,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
           }
 
           const tasksData = await tasksResponse.json();
-          console.log("Fetched tasks:", tasksData.length);
           setTasks(tasksData);
 
           // Fetch notifications
@@ -83,8 +82,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
           }
 
           const notificationsData = await notificationsResponse.json();
-          console.log("Fetched notifications:", notificationsData.length);
-          console.log("Notification data:", notificationsData);
           setNotifications(notificationsData);
         } catch (error) {
           console.error("Failed to fetch data:", error);
@@ -125,7 +122,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const newTask = await response.json();
-      console.log("Created new task:", newTask);
       setTasks((prevTasks) => [...prevTasks, newTask]);
 
       // Fetch updated notifications after task creation
@@ -137,10 +133,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
       if (notificationsResponse.ok) {
         const notificationsData = await notificationsResponse.json();
-        console.log(
-          "Updated notifications after task creation:",
-          notificationsData.length
-        );
         setNotifications(notificationsData);
       }
 
@@ -233,8 +225,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("No authentication token found");
       }
 
-      console.log("Assigning task:", { taskId, userId });
-
       const response = await fetch(`${API_URL}/tasks/${taskId}/assign`, {
         method: "PATCH",
         headers: {
@@ -250,8 +240,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const updatedTask = await response.json();
-      console.log("Task assigned successfully:", updatedTask);
-
       setTasks((prevTasks) =>
         prevTasks.map((t) => (t._id === taskId ? updatedTask : t))
       );

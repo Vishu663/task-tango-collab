@@ -34,7 +34,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => ('Connected to MongoDB'))
   .catch((error) => console.error('MongoDB connection error:', error));
 
 // Authentication middleware
@@ -62,7 +62,6 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
 // Routes
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   try {
-    console.log('Registration attempt:', req.body);
     const { name, email, password } = req.body;
 
     // Validate required fields
@@ -88,8 +87,6 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
     });
 
     await user.save();
-    console.log('User created successfully:', user._id);
-    
     // Generate token
     const token = jwt.sign(
       { _id: user._id }, 
@@ -173,10 +170,8 @@ app.get('/api/tasks', async (req: AuthRequest, res: Response) => {
 
 app.post('/api/tasks', async (req: AuthRequest, res: Response) => {
   try {
-    console.log('Task creation attempt:', { body: req.body, user: req.user?._id });
     
     if (!req.user?._id) {
-      console.log('User not authenticated');
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
@@ -185,13 +180,10 @@ app.post('/api/tasks', async (req: AuthRequest, res: Response) => {
       createdBy: req.user._id
     });
     
-    console.log('Creating task:', task);
     await task.save();
-    console.log('Task created successfully:', task._id);
 
     // Create notifications for all users
     const users = await User.find({});
-    console.log('Creating notifications for users:', users.length);
     
     const notifications = users.map(user => ({
       message: `New task "${task.title}" has been created`,
@@ -201,7 +193,6 @@ app.post('/api/tasks', async (req: AuthRequest, res: Response) => {
     }));
 
     await Notification.insertMany(notifications);
-    console.log('Notifications created successfully');
     
     // Populate the task data before sending response
     const populatedTask = await Task.findById(task._id)
@@ -299,8 +290,6 @@ router.get('/notifications', async (req: AuthRequest, res: Response) => {
       })
       .lean()
       .sort({ timestamp: -1 });
-    
-    console.log('Fetched notifications:', notifications.length);
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -364,8 +353,6 @@ app.patch('/api/tasks/:id/assign', async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Assignee ID is required' });
     }
 
-    console.log('Assigning task:', { taskId: req.params.id, assignedTo });
-
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       { assignedTo },
@@ -374,11 +361,8 @@ app.patch('/api/tasks/:id/assign', async (req: AuthRequest, res: Response) => {
      .populate('createdBy', 'name email');
 
     if (!task) {
-      console.log('Task not found:', req.params.id);
       return res.status(404).json({ error: 'Task not found' });
     }
-
-    console.log('Task assigned successfully:', { taskId: task._id, assignedTo: task.assignedTo });
 
     // Create notification for the assignee
     const notification = new Notification({
@@ -424,6 +408,3 @@ app.use('/api', router);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
