@@ -3,11 +3,14 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import { auth } from './middleware/auth';
 import { User, IUser } from './models/User';
-import { Task, ITask } from './models/Task';
-import { Notification, INotification } from './models/Notification';
-import bcrypt from 'bcryptjs';
+import { Task } from './models/Task';
+import { Notification } from './models/Notification';
+
+// Custom AuthRequest type
+export interface AuthRequest extends Request {
+  user?: IUser; // Add the user property
+}
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +36,28 @@ if (!process.env.MONGODB_URI) {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('MongoDB connection error:', error));
+
+// Authentication middleware
+export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { _id: string };
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    req.user = user; // Attach user to the request
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 // Routes
 app.post('/api/auth/register', async (req: Request, res: Response) => {
@@ -95,7 +120,7 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/auth/login', async (req: Request, res: Response) => {
+app.post('/api/auth/login', async (req: AuthRequest, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -128,11 +153,6 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 app.use('/api/tasks', auth);
 app.use('/api/users', auth);
 app.use('/api/notifications', auth);
-
-// Auth middleware type
-interface AuthRequest extends Request {
-  user?: IUser;
-}
 
 app.get('/api/tasks', async (req: AuthRequest, res: Response) => {
   try {
@@ -406,4 +426,4 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});

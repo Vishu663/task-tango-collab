@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Task } from "../../types";
+import { Task, User } from "../../types";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatDistanceToNow, format, isPast } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -14,13 +13,24 @@ interface TaskCardProps {
 const TaskCard = ({ task, onClick }: TaskCardProps) => {
   const { getUser } = useAuth();
   const creator = getUser(task.createdBy);
-  const assignee = task.assignedTo ? getUser(task.assignedTo) : undefined;
-  
-  const isOverdue = task.dueDate && isPast(new Date(task.dueDate)) && task.status !== 'done';
+  let assignee: User | undefined;
+
+  if (typeof task.assignedTo === "string") {
+    assignee = getUser(task.assignedTo);
+  } else if (typeof task.assignedTo === "object" && task.assignedTo !== null) {
+    assignee = task.assignedTo as User;
+  }
+
+  const isOverdue =
+    task.dueDate && isPast(new Date(task.dueDate)) && task.status !== "done";
 
   return (
-    <Card 
-      className={`${onClick ? "cursor-pointer hover:border-primary/50 transition-colors" : ""} overflow-hidden`}
+    <Card
+      className={`${
+        onClick
+          ? "cursor-pointer hover:border-primary/50 transition-colors"
+          : ""
+      } overflow-hidden`}
       onClick={onClick}
     >
       <div className={`h-1 w-full ${getPriorityClass(task.priority)}`}></div>
@@ -28,7 +38,9 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
         <div className="flex justify-between items-start">
           <div className="space-y-1.5">
             <h3 className="font-semibold">{task.title}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {task.description}
+            </p>
           </div>
           <Badge className={`${getStatusClass(task.status)} ml-2`}>
             {getStatusLabel(task.status)}
@@ -41,7 +53,9 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
             <div className="flex items-center">
               <Avatar className="h-5 w-5 mr-1">
                 <AvatarImage src={assignee.avatarUrl} />
-                <AvatarFallback className="text-[10px]">{assignee.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">
+                  {assignee.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <span>Assigned to {assignee.name}</span>
             </div>
@@ -51,7 +65,8 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
         </div>
         {task.dueDate && (
           <div className={`${isOverdue ? "text-destructive font-medium" : ""}`}>
-            {isOverdue ? "Overdue" : "Due"}: {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}
+            {isOverdue ? "Overdue" : "Due"}:{" "}
+            {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}
           </div>
         )}
       </CardFooter>

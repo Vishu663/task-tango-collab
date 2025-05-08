@@ -1,15 +1,23 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Task, Priority, Status, Notification } from "../types";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
 import axios from "axios";
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = "http://localhost:5000/api";
 
 interface TaskContextType {
   tasks: Task[];
   notifications: Notification[];
-  addTask: (task: Omit<Task, "_id" | "createdAt" | "createdBy">) => Promise<void>;
+  addTask: (
+    task: Omit<Task, "_id" | "createdAt" | "createdBy">
+  ) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   getTask: (taskId: string) => Task | undefined;
@@ -42,42 +50,45 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         try {
           const token = localStorage.getItem("taskTangoToken");
           if (!token) {
-            throw new Error('No authentication token found');
+            throw new Error("No authentication token found");
           }
 
           // Fetch tasks
           const tasksResponse = await fetch(`${API_URL}/tasks`, {
             headers: {
-              'Authorization': `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
-          
+
           if (!tasksResponse.ok) {
-            throw new Error('Failed to fetch tasks');
+            throw new Error("Failed to fetch tasks");
           }
 
           const tasksData = await tasksResponse.json();
-          console.log('Fetched tasks:', tasksData.length);
+          console.log("Fetched tasks:", tasksData.length);
           setTasks(tasksData);
 
           // Fetch notifications
-          const notificationsResponse = await fetch(`${API_URL}/notifications`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
+          const notificationsResponse = await fetch(
+            `${API_URL}/notifications`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             }
-          });
+          );
 
           if (!notificationsResponse.ok) {
-            throw new Error('Failed to fetch notifications');
+            throw new Error("Failed to fetch notifications");
           }
 
           const notificationsData = await notificationsResponse.json();
-          console.log('Fetched notifications:', notificationsData.length);
-          console.log('Notification data:', notificationsData);
+          console.log("Fetched notifications:", notificationsData.length);
+          console.log("Notification data:", notificationsData);
           setNotifications(notificationsData);
         } catch (error) {
-          console.error('Failed to fetch data:', error);
-          toast.error('Failed to fetch data');
+          console.error("Failed to fetch data:", error);
+          toast.error("Failed to fetch data");
         }
       } else {
         setTasks([]);
@@ -88,49 +99,56 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     fetchData();
   }, [user]);
 
-  const addTask = async (taskData: Omit<Task, "_id" | "createdAt" | "createdBy">) => {
+  const addTask = async (
+    taskData: Omit<Task, "_id" | "createdAt" | "createdBy">
+  ) => {
     if (!user) return Promise.reject("Not authenticated");
 
     try {
       const token = localStorage.getItem("taskTangoToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       const response = await fetch(`${API_URL}/tasks`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(taskData)
+        body: JSON.stringify(taskData),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to create task');
+        throw new Error(error.error || "Failed to create task");
       }
 
       const newTask = await response.json();
-      console.log('Created new task:', newTask);
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      console.log("Created new task:", newTask);
+      setTasks((prevTasks) => [...prevTasks, newTask]);
 
       // Fetch updated notifications after task creation
       const notificationsResponse = await fetch(`${API_URL}/notifications`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (notificationsResponse.ok) {
         const notificationsData = await notificationsResponse.json();
-        console.log('Updated notifications after task creation:', notificationsData.length);
+        console.log(
+          "Updated notifications after task creation:",
+          notificationsData.length
+        );
         setNotifications(notificationsData);
       }
 
       toast.success("Task created successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create task");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create task"
+      );
       throw error;
     }
   };
@@ -141,28 +159,32 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = localStorage.getItem("taskTangoToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       const response = await fetch(`${API_URL}/tasks/${task._id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(task)
+        body: JSON.stringify(task),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to update task');
+        throw new Error(error.error || "Failed to update task");
       }
 
       const updatedTask = await response.json();
-      setTasks(prevTasks => prevTasks.map(t => t._id === task._id ? updatedTask : t));
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === task._id ? updatedTask : t))
+      );
       toast.success("Task updated successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update task");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update task"
+      );
       throw error;
     }
   };
@@ -173,80 +195,89 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = localStorage.getItem("taskTangoToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       const response = await fetch(`${API_URL}/tasks/${taskId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to delete task');
+        throw new Error(error.error || "Failed to delete task");
       }
 
-      setTasks(prevTasks => prevTasks.filter(t => t._id !== taskId));
+      setTasks((prevTasks) => prevTasks.filter((t) => t._id !== taskId));
       toast.success("Task deleted successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete task");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete task"
+      );
       throw error;
     }
   };
 
   const getTask = (taskId: string) => {
-    return tasks.find(task => task._id === taskId);
+    return tasks.find((task) => task._id === taskId);
   };
 
-  const assignTask = async (taskId: string, userId: string) => {
+  const assignTask = async (taskId: string, userId: string): Promise<Task> => {
     if (!user) return Promise.reject("Not authenticated");
 
     try {
       const token = localStorage.getItem("taskTangoToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      console.log('Assigning task:', { taskId, userId });
+      console.log("Assigning task:", { taskId, userId });
 
       const response = await fetch(`${API_URL}/tasks/${taskId}/assign`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ assignedTo: userId })
+        body: JSON.stringify({ assignedTo: userId }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to assign task');
+        throw new Error(error.error || "Failed to assign task");
       }
 
       const updatedTask = await response.json();
-      console.log('Task assigned successfully:', updatedTask);
+      console.log("Task assigned successfully:", updatedTask);
 
-      setTasks(prevTasks => prevTasks.map(t => t._id === taskId ? updatedTask : t));
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === taskId ? updatedTask : t))
+      );
       toast.success("Task assigned successfully");
+      return updatedTask;
     } catch (error) {
-      console.error('Failed to assign task:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to assign task");
+      console.error("Failed to assign task:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to assign task"
+      );
       throw error;
     }
   };
 
   const markNotificationAsRead = async (notificationId: string) => {
     try {
-      const response = await axios.patch(`${API_URL}/notifications/${notificationId}`);
-      setNotifications(prev => 
-        prev.map(notification => 
+      const response = await axios.patch(
+        `${API_URL}/notifications/${notificationId}`
+      );
+      setNotifications((prev) =>
+        prev.map((notification) =>
           notification._id === notificationId ? response.data : notification
         )
       );
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -254,33 +285,35 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = localStorage.getItem("taskTangoToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       const response = await fetch(`${API_URL}/notifications`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to clear notifications');
+        throw new Error(error.error || "Failed to clear notifications");
       }
 
       setNotifications([]);
       toast.success("All notifications cleared successfully");
     } catch (error) {
-      console.error('Error clearing notifications:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to clear notifications");
+      console.error("Error clearing notifications:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to clear notifications"
+      );
     }
   };
 
   const getTasksByFilter = (filter: TaskFilter): Task[] => {
     if (!user) return [];
 
-    return tasks.filter(task => {
+    return tasks.filter((task) => {
       // Search filter
       if (
         filter.search &&

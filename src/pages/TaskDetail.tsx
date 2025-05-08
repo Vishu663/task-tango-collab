@@ -64,10 +64,15 @@ const TaskDetail = () => {
     );
   }
 
-  const creator = allUsers.find(u => (u as User)._id === task.createdBy);
-  const assignee = task.assignedTo ? allUsers.find(u => (u as User)._id === task.assignedTo) : undefined;
-  
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+  const creator = allUsers.find((u) => (u as User)._id === task.createdBy);
+  const assignee = task.assignedTo
+    ? allUsers.find((u) => (u as User)._id === task.assignedTo)
+    : undefined;
+
+  const isOverdue =
+    task.dueDate &&
+    new Date(task.dueDate) < new Date() &&
+    task.status !== "done";
 
   const handleStatusChange = async (status: Status) => {
     if (task) {
@@ -103,8 +108,11 @@ const TaskDetail = () => {
     if (task) {
       setIsLoading(true);
       try {
-        await assignTask((task as Task)._id, userId);
-        setTask({ ...task, assignedTo: userId });
+        await assignTask(task._id, userId);
+        setTask((prevTask) => ({
+          ...prevTask!,
+          assignedTo: userId,
+        }));
         toast.success("Task assigned successfully");
       } catch (error) {
         toast.error("Failed to assign task");
@@ -126,6 +134,9 @@ const TaskDetail = () => {
     }
   };
 
+  const getAssignedToId = (assignedTo: string | User | undefined) =>
+    typeof assignedTo === "object" ? assignedTo._id : assignedTo ?? "";
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -139,9 +150,7 @@ const TaskDetail = () => {
               <Badge className={getPriorityClass(task.priority)}>
                 {getPriorityLabel(task.priority)}
               </Badge>
-              {isOverdue && (
-                <Badge variant="destructive">Overdue</Badge>
-              )}
+              {isOverdue && <Badge variant="destructive">Overdue</Badge>}
             </div>
             <h1 className="text-3xl font-bold tracking-tight">{task.title}</h1>
           </div>
@@ -163,12 +172,13 @@ const TaskDetail = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Task</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete this task.
+                    This action cannot be undone. This will permanently delete
+                    this task.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     onClick={handleDeleteTask}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled={isDeleting}
@@ -216,11 +226,21 @@ const TaskDetail = () => {
                   {task.dueDate && (
                     <div className="flex items-start">
                       <div className="mr-3 p-2 bg-muted rounded-full">
-                        <Clock className={`h-5 w-5 ${isOverdue ? "text-destructive" : "text-primary"}`} />
+                        <Clock
+                          className={`h-5 w-5 ${
+                            isOverdue ? "text-destructive" : "text-primary"
+                          }`}
+                        />
                       </div>
                       <div>
                         <div className="font-medium">Due date</div>
-                        <div className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                        <div
+                          className={`text-sm ${
+                            isOverdue
+                              ? "text-destructive font-medium"
+                              : "text-muted-foreground"
+                          }`}
+                        >
                           {format(new Date(task.dueDate), "PPP")}
                           {isOverdue && " (Overdue)"}
                         </div>
@@ -297,7 +317,9 @@ const TaskDetail = () => {
                 {/* Creator */}
                 {creator && (
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">Created by</div>
+                    <div className="text-sm text-muted-foreground">
+                      Created by
+                    </div>
                     <div className="flex items-center">
                       <Avatar className="h-6 w-6 mr-2">
                         <AvatarImage src={creator.avatarUrl} />
@@ -312,9 +334,11 @@ const TaskDetail = () => {
 
                 {/* Assignee */}
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">Assigned to</div>
+                  <div className="text-sm text-muted-foreground">
+                    Assigned to
+                  </div>
                   <Select
-                    value={task.assignedTo || ""}
+                    value={getAssignedToId(task.assignedTo)}
                     onValueChange={handleAssigneeChange}
                     disabled={isLoading}
                   >
@@ -324,12 +348,17 @@ const TaskDetail = () => {
                     <SelectContent>
                       <SelectGroup>
                         {allUsers.map((user) => (
-                          <SelectItem key={(user as User)._id} value={(user as User)._id}>
+                          <SelectItem
+                            key={(user as User)._id}
+                            value={(user as User)._id}
+                          >
                             <div className="flex items-center">
                               <Avatar className="h-5 w-5 mr-2">
                                 <AvatarImage src={(user as User).avatarUrl} />
                                 <AvatarFallback className="text-xs">
-                                  {(user as User).name.substring(0, 2).toUpperCase()}
+                                  {(user as User).name
+                                    .substring(0, 2)
+                                    .toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               {(user as User).name}

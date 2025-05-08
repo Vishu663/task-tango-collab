@@ -18,7 +18,7 @@ export type Task = {
   priority: Priority;
   status: Status;
   createdBy: string;
-  assignedTo?: string;
+  assignedTo?: string | User;
 };
 
 export type Notification = {
