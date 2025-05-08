@@ -19,7 +19,9 @@ const app = express();
 const router = Router();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+}));
 app.use(express.json());
 
 // Error handling middleware
